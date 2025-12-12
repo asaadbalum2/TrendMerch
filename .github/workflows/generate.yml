@@ -1,0 +1,78 @@
+name: Generate T-Shirt Designs
+
+on:
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      count:
+        description: 'Number of designs to generate'
+        required: false
+        default: '5'
+        type: string
+      style:
+        description: 'Style preset (vaporwave, minimalist, graffiti, vintage, neon, cartoon, gothic, sports)'
+        required: false
+        default: 'vaporwave'
+        type: string
+      custom_text:
+        description: 'Custom text (leave empty to use trending topics)'
+        required: false
+        default: ''
+        type: string
+  
+  # Scheduled run (every day at 10 AM UTC)
+  schedule:
+    - cron: '0 10 * * *'
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate designs
+        run: |
+          if [ -n "${{ github.event.inputs.custom_text }}" ]; then
+            # Custom text mode
+            python design.py --text "${{ github.event.inputs.custom_text }}" \
+              --style "${{ github.event.inputs.style || 'vaporwave' }}"
+          else
+            # Auto mode from trends
+            COUNT=${{ github.event.inputs.count || '5' }}
+            STYLE=${{ github.event.inputs.style || 'vaporwave' }}
+            python design.py --auto --count $COUNT --style $STYLE
+          fi
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          PYTHONUNBUFFERED: "1"
+
+      - name: Upload generated designs
+        uses: actions/upload-artifact@v4
+        with:
+          name: tshirt-designs-${{ github.run_number }}
+          path: output/*.png
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Summary
+        run: |
+          echo "## 👕 Generated T-Shirt Designs" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Designs generated: $(ls -1 output/*.png 2>/dev/null | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "Style: ${{ github.event.inputs.style || 'vaporwave' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download from the Artifacts section above!" >> $GITHUB_STEP_SUMMARY
+
