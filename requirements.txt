@@ -1,0 +1,38 @@
+# TrendMerch - Automated T-Shirt Design Generator
+# Zero-Cost Stack for Print-on-Demand
+
+# Google Trends API (unofficial)
+pytrends>=4.9.2
+
+# HuggingFace Inference API
+huggingface_hub>=0.20.0
+
+# Background removal
+rembg>=2.0.50
+
+# Image processing
+Pillow>=10.0.0
+
+# HTTP requests (required by some dependencies)
+requests>=2.31.0
+
+# Async support
+aiohttp>=3.9.0
+
+# ===========================================
+# SETUP NOTES
+# ===========================================
+# 
+# 1. Get a FREE HuggingFace token:
+#    - Go to: https://huggingface.co/settings/tokens
+#    - Create a new token (read access is enough)
+#    - Set environment variable:
+#      export HF_TOKEN=your_token_here
+#
+# 2. rembg may require additional setup on first run
+#    (downloads model automatically)
+#
+# 3. For Linux servers:
+#    sudo apt install python3-pip -y
+#    pip3 install -r requirements.txt
+

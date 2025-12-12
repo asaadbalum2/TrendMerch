@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Output files (generated designs)
+output/*.png
+output/*.jpg
+output/*.jpeg
+
+# Cache
+cache/
+
+# Model cache (rembg downloads model here)
+.u2net/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables (contains secrets!)
+.env
+.env.local
+.env.production
+
+# Keep directories
+!output/.gitkeep
+!cache/.gitkeep
+
