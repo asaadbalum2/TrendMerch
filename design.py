@@ -456,6 +456,8 @@ Available Styles:
                        help="Skip resizing for print")
     parser.add_argument("--list-styles", action="store_true",
                        help="List available style presets")
+    parser.add_argument("--upload", "-u", action="store_true",
+                       help="Upload designs to cloud storage")
     parser.add_argument("--check", action="store_true",
                        help="Check dependencies only")
     
@@ -476,23 +478,54 @@ Available Styles:
     
     ensure_directories()
     
+    # Determine if we should upload
+    should_upload = args.upload or (os.environ.get('AUTO_UPLOAD', '').lower() == 'true')
+    
+    generated = []
+    
     if args.auto:
-        auto_generate(
+        generated = auto_generate(
             count=args.count,
             style=args.style,
             region=args.region,
             hf_token=hf_token
         )
     elif args.text:
-        process_trend(
+        result = process_trend(
             args.text,
             style=args.style,
             remove_bg=not args.no_bg_remove,
             resize=not args.no_resize,
             hf_token=hf_token
         )
+        if result:
+            generated = [result]
     else:
         parser.print_help()
+        return
+    
+    # Upload if requested
+    if should_upload and generated:
+        upload_designs(generated)
+
+
+def upload_designs(design_paths: list):
+    """Upload designs to cloud storage."""
+    try:
+        from cloud_uploader import upload_designs as do_upload
+        print("\n📤 Uploading designs to cloud storage...")
+        result = do_upload(design_paths, method="github")
+        
+        if result.get('release'):
+            print(f"\n🎉 Designs available at: {result['release']['release_url']}")
+        
+        return result
+    except ImportError:
+        print("⚠️ Cloud uploader not available. Skipping upload.")
+        return None
+    except Exception as e:
+        print(f"❌ Upload failed: {e}")
+        return None
 
 
 if __name__ == "__main__":
