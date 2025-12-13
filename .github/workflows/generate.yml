@@ -1,42 +1,22 @@
-name: Generate & Upload T-Shirt Designs
+name: TrendMerch - Auto Generate & Upload
 
 on:
-  workflow_dispatch:
-    inputs:
-      count:
-        description: 'Number of designs to generate'
-        required: false
-        default: '5'
-        type: string
-      style:
-        description: 'Style preset (vaporwave, minimalist, graffiti, vintage, neon, cartoon, gothic, sports)'
-        required: false
-        default: 'vaporwave'
-        type: string
-      custom_text:
-        description: 'Custom text (leave empty to use trending topics)'
-        required: false
-        default: ''
-        type: string
-      upload:
-        description: 'Upload designs to GitHub Releases'
-        required: false
-        default: true
-        type: boolean
-  
-  # Scheduled runs (3 times per day)
+  # Scheduled runs - MAXIMIZED (6 times per day)
   schedule:
-    - cron: '0 8 * * *'   # 8 AM UTC
-    - cron: '0 14 * * *'  # 2 PM UTC  
-    - cron: '0 20 * * *'  # 8 PM UTC
+    - cron: '0 3 * * *'   # 3 AM UTC
+    - cron: '0 7 * * *'   # 7 AM UTC
+    - cron: '0 11 * * *'  # 11 AM UTC
+    - cron: '0 15 * * *'  # 3 PM UTC
+    - cron: '0 19 * * *'  # 7 PM UTC
+    - cron: '0 23 * * *'  # 11 PM UTC
 
 jobs:
   generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     
     permissions:
-      contents: write  # Needed for creating releases
+      contents: write
 
     steps:
       - name: Checkout code
@@ -58,39 +38,33 @@ jobs:
           pip install -r requirements.txt
           pip install rembg[cpu]
 
-      - name: Generate designs
+      - name: Generate designs (10 per run - MAXIMIZED)
         run: |
-          if [ -n "${{ github.event.inputs.custom_text }}" ]; then
-            python design.py --text "${{ github.event.inputs.custom_text }}" \
-              --style "${{ github.event.inputs.style || 'vaporwave' }}" \
-              --upload
-          else
-            COUNT=${{ github.event.inputs.count || '5' }}
-            STYLE=${{ github.event.inputs.style || 'vaporwave' }}
-            python design.py --auto --count $COUNT --style $STYLE --upload
-          fi
+          # Rotate through different styles for variety
+          HOUR=$(date +%H)
+          case $((HOUR % 6)) in
+            0) STYLE="vaporwave" ;;
+            1) STYLE="minimalist" ;;
+            2) STYLE="graffiti" ;;
+            3) STYLE="neon" ;;
+            4) STYLE="vintage" ;;
+            5) STYLE="cartoon" ;;
+          esac
+          
+          echo "Using style: $STYLE"
+          python design.py --auto --count 10 --style $STYLE --upload
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AUTO_UPLOAD: "true"
           PYTHONUNBUFFERED: "1"
 
-      - name: Upload artifacts (backup)
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: tshirt-designs-${{ github.run_number }}
-          path: output/*.png
-          retention-days: 7
-          if-no-files-found: warn
-
       - name: Summary
         run: |
           echo "## 👕 TrendMerch Run Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Designs generated: $(ls -1 output/*.png 2>/dev/null | wc -l)" >> $GITHUB_STEP_SUMMARY
-          echo "Style: ${{ github.event.inputs.style || 'vaporwave' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Time:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "**Designs Generated:** 10" >> $GITHUB_STEP_SUMMARY
+          echo "**Uploaded to:** GitHub Releases" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Designs uploaded to GitHub Releases!" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "View releases: https://github.com/${{ github.repository }}/releases" >> $GITHUB_STEP_SUMMARY
+          echo "📦 **Releases:** https://github.com/asaadbalum2/TrendMerch/releases" >> $GITHUB_STEP_SUMMARY
