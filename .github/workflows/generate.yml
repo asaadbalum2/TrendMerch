@@ -13,12 +13,19 @@ on:
 jobs:
   generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     
     permissions:
       contents: write
 
     steps:
+      - name: Random delay for stealth (0-45 min)
+        run: |
+          DELAY=$((RANDOM % 2700))
+          echo "⏱️ Waiting $DELAY seconds ($(($DELAY / 60)) minutes) for randomization..."
+          sleep $DELAY
+          echo "✅ Starting execution at $(date -u)"
+
       - name: Checkout code
         uses: actions/checkout@v4
 
