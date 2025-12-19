@@ -324,3 +324,5 @@ if __name__ == "__main__":
     results = upload_designs_to_printful([design_file])
     print(json.dumps(results, indent=2))
 
+
+

@@ -69,8 +69,23 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PRINTFUL_API_KEY: ${{ secrets.PRINTFUL_API_KEY }}
           AUTO_UPLOAD: "true"
           PYTHONUNBUFFERED: "1"
+
+      - name: Verify design generation
+        run: |
+          echo "📊 Checking generated designs..."
+          DESIGN_COUNT=$(ls output/*.png 2>/dev/null | wc -l)
+          
+          if [ "$DESIGN_COUNT" -eq 0 ]; then
+            echo "❌ CRITICAL: No designs were generated!"
+            echo "::error::No designs were generated - check logs above for errors"
+          else
+            echo "✅ Generated $DESIGN_COUNT design(s)"
+            ls -la output/*.png 2>/dev/null || true
+          fi
+        continue-on-error: true
 
       - name: Summary
         run: |
